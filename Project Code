@@ -1,0 +1,119 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+temp = pd.read_excel('StackOverflowInfo.xlsx')
+stack_df = pd.DataFrame(temp)
+display(stack_df)
+
+outliers = np.where((stack_df["Number Of Posts"] > 10000) | (stack_df["Downvotes"] > 45000))
+stack_df = stack_df.drop(outliers[0])
+
+import seaborn
+
+seaborn.scatterplot(y = 'Number Of Posts', x = 'Percent Accepted', data = stack_df)
+plt.legend(title="MedHouseVal", bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.show()
+seaborn.pairplot(stack_df, x_vars = ['Upvotes', 'Downvotes', 'Reputation', 'Answers', 'Accepted Answers', 'Percent Accepted'], y_vars = ['Number Of Posts'])
+
+stack_df['Upvotes'] = (stack_df['Upvotes'] - stack_df['Upvotes'].mean())/ stack_df['Upvotes'].std()
+stack_df['Downvotes'] = (stack_df['Downvotes'] - stack_df['Downvotes'].mean())/ stack_df['Downvotes'].std()
+stack_df['Reputation'] = (stack_df['Reputation'] - stack_df['Reputation'].mean())/ stack_df['Reputation'].std()
+stack_df['Answers'] = (stack_df['Answers'] - stack_df['Answers'].mean())/ stack_df['Answers'].std()
+stack_df['Accepted Answers'] = (stack_df['Accepted Answers'] - stack_df['Accepted Answers'].mean())/ stack_df['Accepted Answers'].std()
+stack_df['Percent Accepted'] = (stack_df['Percent Accepted'] - stack_df['Percent Accepted'].mean())/ stack_df['Percent Accepted'].std()
+stack_df['Number Of Posts'] = (stack_df['Number Of Posts'] - stack_df['Number Of Posts'].mean())/ stack_df['Number Of Posts'].std()
+
+#Curve Fitting using Linear Regression
+from sklearn.linear_model import LinearRegression
+from scipy.optimize import curve_fit
+class Curve:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
+    def func(self):
+        x_linear = np.array(self.x)
+        y_linear = np.array(self.y)
+        x_linear_reshaped = x_linear.reshape(-1,1)
+        linear_model = LinearRegression()
+        linear_model.fit(x_linear_reshaped, y_linear)
+        y_linear_pred = linear_model.predict(x_linear_reshaped)
+        plt.scatter(x_linear, y_linear, color= 'blue', label='Data')
+        plt.plot(x_linear, y_linear_pred, color='red', label='Fitted Line')
+        plt.title('Linear Regression')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.legend()
+        plt.show()
+
+up = Curve(stack_df["Upvotes"], stack_df["Number Of Posts"])
+down = Curve(stack_df["Downvotes"], stack_df["Number Of Posts"])
+rep = Curve(stack_df["Reputation"], stack_df["Number Of Posts"])
+ans = Curve(stack_df["Answers"], stack_df["Number Of Posts"])
+acc = Curve(stack_df["Accepted Answers"], stack_df["Number Of Posts"])
+per = Curve(stack_df["Percent Accepted"], stack_df["Number Of Posts"])
+up.func()
+down.func()
+rep.func()
+ans.func()
+acc.func()
+per.func()
+
+# Ordinary Least Squares
+import statsmodels.api as sm
+class LeastSquarestrn:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def func(self):    
+        x = stack_df[self.x].tolist()
+        y = stack_df[self.y].tolist()
+        x = sm.add_constant(x)
+        result = sm.OLS(y,x).fit()
+        print(result.summary())
+
+up = LeastSquarestrn("Upvotes","Number Of Posts")
+down = LeastSquarestrn("Downvotes","Number Of Posts")
+rep = LeastSquarestrn("Reputation","Number Of Posts")
+ans = LeastSquarestrn("Answers","Number Of Posts")
+acc = LeastSquarestrn("Accepted Answers","Number Of Posts")
+per = LeastSquarestrn("Percent Accepted","Number Of Posts")
+up.func()
+down.func()
+rep.func()
+ans.func()
+acc.func()
+per.func()
+
+class LeastSquares:
+    def __init__(self, x, y, coef, const):
+        self.x = x
+        self.y = y
+        self.coef = coef
+        self.const = const
+
+    def func(self):
+        x = stack_df[self.x].tolist()
+        y = stack_df[self.y].tolist()
+        plt.scatter(x,y)
+        max_x = stack_df[self.x].max()
+        min_x = stack_df[self.x].min()
+        x = np.arange(min_x, max_x, 1)
+        y = self.coef * x - self.const
+        plt.plot(y, 'r')
+        plt.show()
+
+up = LeastSquares("Upvotes", "Number Of Posts", 0.4567, -2.533e-15)
+down = LeastSquares("Downvotes", "Number Of Posts", 0.2032, -2.533e-15)
+rep = LeastSquares("Reputation", "Number Of Posts", 0.7709, -2.533e-15)
+ans = LeastSquares("Answers", "Number Of Posts", 0.9813, -2.533e-15)
+acc = LeastSquares("Accepted Answers", "Number Of Posts", 0.9258, -2.533e-15)
+per = LeastSquares("Percent Accepted", "Number Of Posts",0.1226, -2.533e-15)
+up.func()
+down.func()
+rep.func()
+ans.func()
+acc.func()
+per.func()
